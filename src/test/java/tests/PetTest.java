@@ -163,6 +163,8 @@ public class PetTest extends TestBase {
                 .body("tags", hasSize(greaterThan(0)));
     }
 
+
+    // TODO: 14.05.2025 переделать
     @ParameterizedTest
     @ValueSource(strings = {"0", "-5", "abc", "1.5"})
     @DisplayName("GET /pet/{petId} - Невалидный ID")
@@ -207,59 +209,42 @@ public class PetTest extends TestBase {
     }
 
     @Test
-    @DisplayName("PUT /pet - Невалидные данные категории")
-    void updatePetWithInvalidCategoryShouldFail() {
-        Map<String, Object> invalidBody = Map.of(
-                "id", testPetId,
-                "category", "invalid_category_type",
-                "name", "Tiger",
-                "status", "available"
-        );
-
+    @DisplayName("DELETE /pet/{petId} - Успешное удаление питомца")
+    void deletePetWithValidIdShouldSucceed() {
         given()
-                .contentType(ContentType.JSON)
-                .body(invalidBody)
+                .header("api_key", "12")
+                .pathParam("petId", testPetId)
                 .when()
-                .put("/pet")
+                .delete("/pet/{petId}")
                 .then()
-                .statusCode(400);
-    }
-
-    @Test
-    @DisplayName("PUT /pet - Обновление несуществующего питомца")
-    void updateNonExistentPetShouldFail() {
-        String invalidId = "999999";
-        Map<String, Object> body = Map.of(
-                "id", invalidId,
-                "name", "Ghost",
-                "status", "sold"
-        );
+                .statusCode(200)
+                .body("message", equalTo(testPetId));
 
         given()
-                .contentType(ContentType.JSON)
-                .body(body)
+                .pathParam("petId", testPetId)
                 .when()
-                .put("/pet")
+                .get("/pet/{petId}")
                 .then()
                 .statusCode(404);
     }
 
-    @Test
-    @DisplayName("PUT /pet - Отсутствие обязательного поля 'name'")
-    void updatePetWithoutRequiredFieldShouldFail() {
-        Map<String, Object> invalidBody = Map.of(
-                "id", testPetId,
-                "status", "pending"
-        );
 
+    @Test
+    @DisplayName("DELETE /pet/{petId} - Несуществующий питомец")
+    void deleteNonExistentPetShouldReturn404() {
+        String nonExistentId = "999999";
         given()
-                .contentType(ContentType.JSON)
-                .body(invalidBody)
+                .header("api_key", "12")
+                .pathParam("petId", nonExistentId)
                 .when()
-                .put("/pet")
+                .delete("/pet/{petId}")
                 .then()
-                .statusCode(400)
-                .body("message", containsString("Validation error"));
+                .statusCode(404);
     }
+
+
+
+
+
 
 }

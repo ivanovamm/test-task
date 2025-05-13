@@ -98,7 +98,7 @@ public class StoreTest extends TestBase {
 
 
     @Test
-    @DisplayName("Удаление заказа с несуществующим ID — ожидается 404 Not Found")
+    @DisplayName("DELETE /store/order/{orderId} - Удаление заказа с несуществующим ID")
     void deleteNonExistentOrderShouldReturnNotFound() {
         long nonExistentId = 999999999;
 
@@ -113,7 +113,7 @@ public class StoreTest extends TestBase {
 
 
     @Test
-    @DisplayName("Удаление заказа — успешный DELETE")
+    @DisplayName("DELETE /store/order/{orderId} - успешный DELETE")
     void DeleteOrderShouldSucceed() {
         given()
                 .pathParam("orderId", testOrderId)
