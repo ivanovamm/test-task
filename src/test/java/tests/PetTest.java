@@ -1,7 +1,11 @@
 package tests;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import generators.PetGenerator;
+import generators.UserGenerator;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,6 +13,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -16,6 +23,24 @@ import static org.hamcrest.Matchers.*;
 public class PetTest extends TestBase {
 
     private final File validImage = new File("src/test/resources/test_image.png");
+
+    private String testPetId;
+
+    @BeforeEach
+    void createTestPet() throws JsonProcessingException {
+        String testPet = PetGenerator.generateRandomPet();
+        Response response = given()
+                .contentType("application/json")
+                .body(testPet)
+                .post("/pet");
+
+
+        testPetId = response.jsonPath().getString("id");
+
+        response.then()
+                .statusCode(200);
+    }
+
 
     @Test
     @DisplayName("POST /pet/{petId}/uploadImage - Успешная загрузка изображения")
@@ -151,15 +176,90 @@ public class PetTest extends TestBase {
                 .body("message", containsString("Invalid ID"));
     }
 
+    @Test
+    @DisplayName("PUT /pet - Успешное обновление питомца")
+    void updatePetWithValidDataShouldSucceed() throws JsonProcessingException {
+        Map<String, Object> category = Map.of(
+                "id", 1,
+                "name", "mammal"
+        );
 
+        Map<String, Object> updatedBody = Map.of(
+                "id", testPetId,
+                "category", category,
+                "name", "Lion",
+                "photoUrls", List.of("https://example.com/lion.jpg"),
+                "tags", Collections.singletonList(Map.of("id", 1, "name", "wild")),
+                "status", "available"
+        );
 
+        given()
+                .contentType(ContentType.JSON)
+                .body(updatedBody)
+                .when()
+                .put("/pet")
+                .then()
+                .statusCode(200)
+                .body("id", equalTo(Integer.parseInt(testPetId)))
+                .body("name", equalTo("Lion"))
+                .body("status", equalTo("available"))
+                .body("category.name", equalTo("mammal"));
+    }
 
+    @Test
+    @DisplayName("PUT /pet - Невалидные данные категории")
+    void updatePetWithInvalidCategoryShouldFail() {
+        Map<String, Object> invalidBody = Map.of(
+                "id", testPetId,
+                "category", "invalid_category_type",
+                "name", "Tiger",
+                "status", "available"
+        );
 
+        given()
+                .contentType(ContentType.JSON)
+                .body(invalidBody)
+                .when()
+                .put("/pet")
+                .then()
+                .statusCode(400);
+    }
 
+    @Test
+    @DisplayName("PUT /pet - Обновление несуществующего питомца")
+    void updateNonExistentPetShouldFail() {
+        String invalidId = "999999";
+        Map<String, Object> body = Map.of(
+                "id", invalidId,
+                "name", "Ghost",
+                "status", "sold"
+        );
 
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .put("/pet")
+                .then()
+                .statusCode(404);
+    }
 
+    @Test
+    @DisplayName("PUT /pet - Отсутствие обязательного поля 'name'")
+    void updatePetWithoutRequiredFieldShouldFail() {
+        Map<String, Object> invalidBody = Map.of(
+                "id", testPetId,
+                "status", "pending"
+        );
 
-
-
+        given()
+                .contentType(ContentType.JSON)
+                .body(invalidBody)
+                .when()
+                .put("/pet")
+                .then()
+                .statusCode(400)
+                .body("message", containsString("Validation error"));
+    }
 
 }

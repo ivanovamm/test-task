@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import models.User;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -40,6 +42,14 @@ public class UserGenerator {
         user.setPhone("1223818010");
         user.setUserStatus(1);
         return mapper.writeValueAsString(user);
+    }
+
+    public static String generateUserArrayJson(int count) throws JsonProcessingException {
+        List<String> users = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            users.add(generateRandomUser());
+        }
+        return "[" + String.join(",", users) + "]";
     }
 
     private static Long generateUniqueId() {
