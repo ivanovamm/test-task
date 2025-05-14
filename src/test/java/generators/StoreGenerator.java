@@ -30,7 +30,7 @@ public class StoreGenerator {
 
     public static String generateTestOrder() throws JsonProcessingException {
         Order order = new Order();
-        order.setId(1);
+        order.setId(generateUniqueId());
         order.setPetId(generatePetId());
         order.setQuantity((random.nextInt(1, 11)));
         order.setShipDate(LocalDateTime.now().plusDays(1).toString());
@@ -39,7 +39,7 @@ public class StoreGenerator {
         return mapper.writeValueAsString(order);
     }
 
-    private static Integer generateUniqueId() {
+    public static Integer generateUniqueId() {
         return ThreadLocalRandom.current().nextInt(1000, 10_000);
     }
 

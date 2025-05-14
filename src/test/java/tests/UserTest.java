@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import generators.UserGenerator;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import static org.hamcrest.Matchers.*;
 
 public class UserTest extends TestBase {
 
-    private String testUsername;
+    private  String testUsername;
 
     private String testUser;
 
@@ -41,6 +42,25 @@ public class UserTest extends TestBase {
         response.then()
                 .statusCode(200)
                 .body("message", notNullValue());
+    }
+
+    @AfterEach
+    void cleanup() {
+        if (testUsername != null && !testUsername.isEmpty()) {
+            System.out.println("Cleaning up user: " + testUsername);
+
+            try {
+                given()
+                        .pathParam("username", testUsername)
+                        .when()
+                        .delete("/user/{username}")
+                        .then()
+                        .statusCode(anyOf(is(200), is(404)));
+            } catch (Exception e) {
+                System.err.println("Error during cleanup: " + e.getMessage());
+            }
+        }
+        testUsername = null;
     }
 
     @Test
@@ -195,13 +215,13 @@ public class UserTest extends TestBase {
     @Test
     @DisplayName("PUT /user/{username} - Пользователь не найден (404)")
     void updateNonExistentUser() {
-        String nonExistentUsername = "nonexistentuser";
+        String randomUserName = UserGenerator.generateUsername();
         Map<String, Object> userBody = new HashMap<>();
         userBody.put("firstName", "TestName");
 
         given()
                 .contentType(ContentType.JSON)
-                .pathParam("username", nonExistentUsername)
+                .pathParam("username", randomUserName)
                 .body(userBody)
                 .when()
                 .put("/user/{username}")

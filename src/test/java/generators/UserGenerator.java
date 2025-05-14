@@ -56,7 +56,7 @@ public class UserGenerator {
         return ThreadLocalRandom.current().nextLong(1000, 10_000);
     }
 
-    private static String generateUsername() {
+    public static String generateUsername() {
         return "user_" + UUID.randomUUID().toString().substring(0, 8);
     }
 

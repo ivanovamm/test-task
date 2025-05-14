@@ -44,8 +44,8 @@ public class PetGenerator {
         return mapper.writeValueAsString(pet);
     }
 
-    private static Long generateUniqueId() {
-        return ThreadLocalRandom.current().nextLong(1000, 10_000);
+    private static Integer generateUniqueId() {
+        return ThreadLocalRandom.current().nextInt(10, 10_000);
     }
 
     private static Category generateRandomCategory() {

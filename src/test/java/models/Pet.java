@@ -10,16 +10,15 @@ import lombok.NoArgsConstructor;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Pet {
-    private Long id;
+    private Integer id;
     private Category category;
     private String name;
     private String[] photoUrls;
     private Tag[] tags;
     private String status;
 
-
     @JsonProperty("id")
-    public Long getId() { return id; }
+    public Integer getId() { return id; }
 
     @JsonProperty("category")
     public Category getCategory() { return category; }

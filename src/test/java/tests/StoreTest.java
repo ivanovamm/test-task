@@ -3,9 +3,11 @@ package tests;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import generators.StoreGenerator;
 import io.restassured.response.Response;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.Map;
 
@@ -15,7 +17,7 @@ import static org.hamcrest.Matchers.*;
 
 public class StoreTest extends TestBase {
 
-    private static String testOrderId;
+    private String testOrderId;
 
     @BeforeEach
     void createTestOrder() throws JsonProcessingException {
@@ -31,12 +33,30 @@ public class StoreTest extends TestBase {
                 .statusCode(200)
                 .body("id", notNullValue());
 
+        System.out.println("Created orderID: " + testOrderId);
+
     }
+
+    @AfterEach
+    void cleanup() {
+        if (testOrderId != null && !testOrderId.isEmpty()) {
+            System.out.println("Cleaning up order ID: " + testOrderId);
+
+            Response response = given()
+                    .pathParam("orderId", testOrderId)
+                    .when()
+                    .delete("/store/order/{orderId}");
+
+            System.out.println("Cleanup status: " + response.getStatusCode());
+            testOrderId = null;
+        }
+    }
+
 
 
     @Test
     @DisplayName("GET /store/inventory - Получение списка заказов и статусов")
-    void getInventoryShouldReturnSuccess(){
+    void getInventoryShouldReturnSuccess() {
         given()
                 .contentType("application/json")
                 .when()
@@ -84,7 +104,7 @@ public class StoreTest extends TestBase {
     @Test
     @DisplayName("GET /store/order/{orderId} - Несуществующий заказ")
     void getNonExistentOrderShouldReturnNotFound() {
-        int nonExistentOrderId = 999999;
+        int nonExistentOrderId = StoreGenerator.generateUniqueId();
         given()
                 .pathParam("orderId", nonExistentOrderId)
                 .when()
@@ -95,12 +115,10 @@ public class StoreTest extends TestBase {
     }
 
 
-
-
     @Test
     @DisplayName("DELETE /store/order/{orderId} - Удаление заказа с несуществующим ID")
     void deleteNonExistentOrderShouldReturnNotFound() {
-        long nonExistentId = 999999999;
+        long nonExistentId = StoreGenerator.generateUniqueId();
 
         given()
                 .pathParam("orderId", nonExistentId)
@@ -122,7 +140,6 @@ public class StoreTest extends TestBase {
                 .then()
                 .statusCode(200);
     }
-
 
 
 }
