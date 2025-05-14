@@ -17,6 +17,17 @@ public class UserGenerator {
 
     private static final List<String> FIRST_NAMES = List.of("John", "Alice", "Bob", "Emma", "David");
     private static final List<String> LAST_NAMES = List.of("Doe", "Smith", "Johnson", "Brown", "Wilson");
+    private static final Long MIN_ID = 1000L;
+    private static final Long MAX_ID = 10_000L;
+    private static final Integer USERNAME_UUID_LENGTH = 8;
+    private static final String PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final Integer PASSWORD_LENGTH = 10;
+    private static final String PHONE_PREFIX = "+1";
+    private static final Integer PHONE_NUMBER_LENGTH = 10;
+    private static final Integer PHONE_NUMBER_MAX = 1_000_000_000;
+    private static final Integer TEST_USER_STATUS = 1;
+    private static final String TEST_PHONE_NUMBER = "1223818010";
+    private static final String TEST_PASSWORD = "testPass123";
 
     public static String generateRandomUser() throws JsonProcessingException {
         User user = new User();
@@ -38,9 +49,9 @@ public class UserGenerator {
         user.setFirstName("Ivan");
         user.setLastName("Ivanov");
         user.setEmail("ivan@example.com");
-        user.setPassword("testPass123");
-        user.setPhone("1223818010");
-        user.setUserStatus(1);
+        user.setPassword(TEST_PASSWORD);
+        user.setPhone(TEST_PHONE_NUMBER);
+        user.setUserStatus(TEST_USER_STATUS);
         return mapper.writeValueAsString(user);
     }
 
@@ -53,24 +64,23 @@ public class UserGenerator {
     }
 
     private static Long generateUniqueId() {
-        return ThreadLocalRandom.current().nextLong(1000, 10_000);
+        return ThreadLocalRandom.current().nextLong(MIN_ID, MAX_ID);
     }
 
     public static String generateUsername() {
-        return "user_" + UUID.randomUUID().toString().substring(0, 8);
+        return "user_" + UUID.randomUUID().toString().substring(0, USERNAME_UUID_LENGTH);
     }
 
     private static String generatePassword() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 10; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
+        for (int i = 0; i < PASSWORD_LENGTH; i++) {
+            sb.append(PASSWORD_CHARS.charAt(random.nextInt(PASSWORD_CHARS.length())));
         }
         return sb.toString();
     }
 
     private static String generatePhone() {
-        return "+1" + String.format("%010d", random.nextInt(1_000_000_000));
+        return PHONE_PREFIX + String.format("%0" + PHONE_NUMBER_LENGTH + "d", random.nextInt(PHONE_NUMBER_MAX));
     }
 
     private static <T> T getRandomElement(List<T> list) {

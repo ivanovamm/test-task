@@ -24,7 +24,7 @@ public class PetTest extends TestBase {
 
     private final File validImage = new File("src/test/resources/test_image.png");
 
-    private static String testPetId;
+    private String testPetId;
 
     @BeforeEach
     void createTestPet() throws JsonProcessingException {
@@ -43,26 +43,11 @@ public class PetTest extends TestBase {
         System.out.println("Created Pet ID: " + testPetId);
     }
 
-    @AfterEach
-    void cleanup() {
-        if (testPetId != null) {
-            given()
-                    .header("api_key", 12)
-                    .pathParam("petId", testPetId)
-                    .when()
-                    .delete("/pet/{petId}")
-                    .then()
-                    .statusCode(anyOf(is(200), is(404)));
-        }
-        testPetId = null;
-    }
     @Test
     @DisplayName("POST /pet/{petId}/uploadImage - Успешная загрузка изображения")
     void uploadImageWithMetadataShouldReturnSuccess() {
-        int existingPetId = 1;
-
         given()
-                .pathParam("petId", existingPetId)
+                .pathParam("petId", testPetId)
                 .contentType(ContentType.MULTIPART)
                 .multiPart("additionalMetadata", "test metadata")
                 .multiPart("file", validImage)
@@ -78,7 +63,6 @@ public class PetTest extends TestBase {
     @Test
     @DisplayName("POST /pet/{petId}/uploadImage - Загрузка без метаданных")
     void uploadImageWithoutMetadataShouldSucceed() {
-
         given()
                 .pathParam("petId", testPetId)
                 .contentType(ContentType.MULTIPART)
@@ -233,7 +217,7 @@ public class PetTest extends TestBase {
     @Test
     @DisplayName("DELETE /pet/{petId} - Несуществующий питомец")
     void deleteNonExistentPetShouldReturn404() {
-        String nonExistentId = "999999";
+        Integer nonExistentId = PetGenerator.generateUniqueId();
         given()
                 .header("api_key", "12")
                 .pathParam("petId", nonExistentId)
@@ -242,6 +226,82 @@ public class PetTest extends TestBase {
                 .then()
                 .statusCode(404);
     }
+
+
+    @Test
+    @DisplayName("POST /pet/{petId} - Обновление только статуса")
+    void updatePetStatusOnlyShouldSucceed() {
+        given()
+                .contentType(ContentType.URLENC)
+                .pathParam("petId", testPetId)
+                .formParam("status", "sold")
+                .when()
+                .post("/pet/{petId}")
+                .then()
+                .statusCode(200);
+
+        given()
+                .pathParam("petId", testPetId)
+                .when()
+                .get("/pet/{petId}")
+                .then()
+                .body("status", equalTo("sold"));
+    }
+
+    @Test
+    @DisplayName("POST /pet/{petId} - Обновление статуса и имени")
+    void updatePetStatusAndNameShouldSucceed() {
+        given()
+                .contentType(ContentType.URLENC)
+                .pathParam("petId", testPetId)
+                .formParam("status", "sold")
+                .formParam("name", "newName")
+                .when()
+                .post("/pet/{petId}")
+                .then()
+                .statusCode(200);
+
+        given()
+                .pathParam("petId", testPetId)
+                .when()
+                .get("/pet/{petId}")
+                .then()
+                .body("name", equalTo("newName"))
+                .body("status", equalTo("sold"));
+    }
+
+    @ParameterizedTest
+    @DisplayName("POST /pet/{petId} - Невалидные данные")
+    @ValueSource(strings = {"invalid_id", "0", "-5", "1.5"})
+    void updatePetWithInvalidIdShouldFail(String invalidId) {
+        given()
+                .contentType(ContentType.URLENC)
+                .pathParam("petId", invalidId)
+                .formParam("name", "Test")
+                .when()
+                .post("/pet/{petId}")
+                .then()
+                .statusCode(405)
+                .body("message", containsString("Invalid input"));
+    }
+
+
+    @AfterEach
+    void cleanup() {
+        if (testPetId != null) {
+            System.out.println("Cleaning up pet ID: " + testPetId);
+            given()
+                    .header("api_key", 12)
+                    .pathParam("petId", testPetId)
+                    .when()
+                    .delete("/pet/{petId}")
+                    .then()
+                    .statusCode(anyOf(is(200), is(404)));
+            testPetId = null;
+        }
+
+    }
+
 
 
 }
