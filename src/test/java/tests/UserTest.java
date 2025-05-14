@@ -44,6 +44,25 @@ public class UserTest extends TestBase {
                 .body("message", notNullValue());
     }
 
+    @AfterEach
+    void cleanup() {
+        if (testUsername != null && !testUsername.isEmpty()) {
+            System.out.println("Cleaning up user: " + testUsername);
+
+            try {
+                given()
+                        .pathParam("username", testUsername)
+                        .when()
+                        .delete("/user/{username}")
+                        .then()
+                        .statusCode(anyOf(is(200), is(404)));
+            } catch (Exception e) {
+                System.err.println("Error during cleanup: " + e.getMessage());
+            }
+        }
+        testUsername = null;
+    }
+
 
     @Test
     @DisplayName("POST /user - Успешное добавление пользователя")
@@ -225,26 +244,6 @@ public class UserTest extends TestBase {
                 .statusCode(200);
 
     }
-
-    @AfterEach
-    void cleanup() {
-        if (testUsername != null && !testUsername.isEmpty()) {
-            System.out.println("Cleaning up user: " + testUsername);
-
-            try {
-                given()
-                        .pathParam("username", testUsername)
-                        .when()
-                        .delete("/user/{username}")
-                        .then()
-                        .statusCode(anyOf(is(200), is(404)));
-            } catch (Exception e) {
-                System.err.println("Error during cleanup: " + e.getMessage());
-            }
-        }
-        testUsername = null;
-    }
-
 
 
 

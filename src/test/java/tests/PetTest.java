@@ -43,6 +43,23 @@ public class PetTest extends TestBase {
         System.out.println("Created Pet ID: " + testPetId);
     }
 
+    @AfterEach
+    void cleanup() {
+        if (testPetId != null) {
+            System.out.println("Cleaning up pet ID: " + testPetId);
+            given()
+                    .header("api_key", 12)
+                    .pathParam("petId", testPetId)
+                    .when()
+                    .delete("/pet/{petId}")
+                    .then()
+                    .statusCode(anyOf(is(200), is(404)));
+            testPetId = null;
+        }
+
+    }
+
+
     @Test
     @DisplayName("POST /pet/{petId}/uploadImage - Успешная загрузка изображения")
     void uploadImageWithMetadataShouldReturnSuccess() {
@@ -285,22 +302,6 @@ public class PetTest extends TestBase {
                 .body("message", containsString("Invalid input"));
     }
 
-
-    @AfterEach
-    void cleanup() {
-        if (testPetId != null) {
-            System.out.println("Cleaning up pet ID: " + testPetId);
-            given()
-                    .header("api_key", 12)
-                    .pathParam("petId", testPetId)
-                    .when()
-                    .delete("/pet/{petId}")
-                    .then()
-                    .statusCode(anyOf(is(200), is(404)));
-            testPetId = null;
-        }
-
-    }
 
 
 

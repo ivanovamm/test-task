@@ -37,6 +37,21 @@ public class StoreTest extends TestBase {
 
     }
 
+    @AfterEach
+    void cleanup() {
+        if (testOrderId != null && !testOrderId.isEmpty()) {
+            System.out.println("Cleaning up order ID: " + testOrderId);
+
+            Response response = given()
+                    .pathParam("orderId", testOrderId)
+                    .when()
+                    .delete("/store/order/{orderId}");
+
+            System.out.println("Cleanup status: " + response.getStatusCode());
+            testOrderId = null;
+        }
+    }
+
 
 
 
@@ -127,20 +142,6 @@ public class StoreTest extends TestBase {
                 .statusCode(200);
     }
 
-    @AfterEach
-    void cleanup() {
-        if (testOrderId != null && !testOrderId.isEmpty()) {
-            System.out.println("Cleaning up order ID: " + testOrderId);
-
-            Response response = given()
-                    .pathParam("orderId", testOrderId)
-                    .when()
-                    .delete("/store/order/{orderId}");
-
-            System.out.println("Cleanup status: " + response.getStatusCode());
-            testOrderId = null;
-        }
-    }
 
 
 }
